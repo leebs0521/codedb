@@ -4,11 +4,11 @@ import json
 
 def connect_to_database():
     db_config = {
-        "host": "10.11.71.78",
-        "user": "nmlab",
-        "password": "nmlab0582@@",
-        "database": "CODE_DB",
-        "charset": "utf8"
+        "host": "",
+        "user": "",
+        "password": "",
+        "database": "",
+        "charset": ""
     }
 
     try:

@@ -2,8 +2,9 @@ import requests
 import os
 import json
 from db_utils import connect_to_database, find_repository_by_name_and_owner
+
 # GitHub API 토큰 설정
-github_token = "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"
+github_token = ""
 headers = {"Authorization": f"token {github_token}"}
 
 
@@ -57,7 +58,7 @@ def get_repo_list_by_lagnuage(language):
 
 if __name__ == '__main__':
     # 언어에 대한 저장소 정보를 로드하고 출력합니다.
-    language = 'cpp'
+    language = 'c'
 
     repo_list = get_repo_list_by_lagnuage(language)
     print(repo_list)

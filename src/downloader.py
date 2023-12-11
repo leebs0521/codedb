@@ -2,7 +2,7 @@ import requests, json, os, re
 from utils import unzip_file
 
 # GitHub API 토큰 설정
-github_token = "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"
+github_token = ""
 headers = {"Authorization": f"token {github_token}"}
 
 
