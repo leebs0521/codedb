@@ -1,5 +1,5 @@
 import json
-from downloader import generate_version_name
+from github_repo_downloader import generate_version_name
 from utils import get_repository_info, unzip_file
 import os
 
@@ -36,7 +36,7 @@ def repository_tag_download(repo_owner, repo_name, tag_list):
             "downloaded": downloaded})
 
     # repo_dict 딕셔너리를 JSON 파일로 저장
-    output_file = f'/home/lbs/codedb/target/{repo_owner}_{repo_name}/info1.json'
+    output_file = f'/home/lbs/codedb/target/{repo_owner}_{repo_name}/info.json'
     with open(output_file, 'w') as json_file:
         json.dump(repo_info, json_file, indent=4)
 

@@ -2,9 +2,9 @@ import multiprocessing
 from datetime import datetime
 from pytz import timezone
 
-from github_repo_downloader import get_repo_list_by_lagnuage
+from repo_loader import get_repo_list_by_lagnuage
 from db_utils import connect_to_database, find_repository_by_name_and_owner
-import downloader
+import github_repo_downloader
 import insert_data
 
 
@@ -22,7 +22,7 @@ def process_repo(repo):
     conn.close()
     if not flag:
         start_message = f'{repo_owner}/{repo_name} | {datetime.now(timezone("Asia/Seoul"))} | Start.'
-        downloader.download(repo_owner, repo_name)
+        github_repo_downloader.download_github_repo(repo_owner, repo_name)
         insert_data.process(repo_owner, repo_name)
 
         end_message = f'{repo_owner}/{repo_name} | {datetime.now(timezone("Asia/Seoul"))} | End.'

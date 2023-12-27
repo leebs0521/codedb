@@ -1,65 +1,110 @@
-import requests
-import os
-import json
-from db_utils import connect_to_database, find_repository_by_name_and_owner
+import requests, json, os, re
+from utils import unzip_file
 
 # GitHub API 토큰 설정
 github_token = ""
 headers = {"Authorization": f"token {github_token}"}
 
 
-def load_repo_info(language):
-    # 파일에서 저장된 저장소 정보를 로드합니다.
-    file_path = f'/home/lbs/codedb/src/info/repos_api_{language}.json'
-    print(file_path)
-    
-    if os.path.isfile(file_path):
-        with open(file_path, 'r') as file:
-            repo_data = json.load(file)
-    
+def generate_version_name(tag_name):
+    version = ""
+    numbers = re.findall(r'\d+', tag_name)
+    if numbers:
+        version = 'v' + '.'.join(numbers)
+    return version
+
+
+def fetch_repo_info_from_github(repo_owner, repo_name):
+
+    # GitHub API를 사용하여 저장소 검색
+    search_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
+    response = requests.get(search_url, headers=headers)
+    data = response.json()
+
+    return data
+
+
+def download_github_repo(repo_owner, repo_name):
+    data = fetch_repo_info_from_github(repo_owner, repo_name)
+
+    repo_name = data['name']
+    repo_owner = data['owner']['login']
+    full_name = data['full_name']
+    repo_path = f'/home/lbs/codedb/target/{repo_owner}_{repo_name}'
+    url = data['url']
+    platform = 'github'
+    stars_count = data['stargazers_count']
+
+
+    # 저장소의 태그 정보 가져오기
+    tags_url = f"{url}/tags"
+    response = requests.get(tags_url, headers=headers)
+    tags_data = response.json()
+    versions = []
+
+    if len(tags_data) > 0:
+        # 각 태그별로 다운로드 링크 생성
+        for tag in tags_data:
+            tag_name = tag["name"]
+            ver = tag_name.replace("/", "_")
+            zipball_url = f"{url}/zipball/refs/tags/{tag_name}"
+            dir_path = f"/home/lbs/codedb/target/{repo_owner}_{repo_name}/{ver}"
+
+            # 디렉토리 생성 및 다운로드
+            os.makedirs(dir_path, exist_ok=True)
+            return_code = os.system(f"curl -L {zipball_url} -o {dir_path}/{ver}.zip")
+            if return_code == 0:
+                print(f"{dir_path}/{ver}.zip 다운로드 성공.")
+                zip_file_path = f'{dir_path}/{ver}.zip'
+                unzip_file(zip_file_path, dir_path)
+                downloaded = True
+            else:
+                print(f"{dir_path}/{ver}.zip 다운로드 실패. code: {return_code}")
+                downloaded = False
+
+            version_name = generate_version_name(tag_name)
+            versions.append({"version_name": version_name, "tag_name": tag_name, "dir_path": dir_path,
+                             "downloaded": downloaded})
     else:
-        # 파일이 없는 경우 GitHub API로부터 데이터를 가져옵니다.
-        sort = "stars"
-        per_page = 100
-        
-        # GitHub API를 사용하여 저장소 검색
-        search_url = f"https://api.github.com/search/repositories?q=language:{language}&sort={sort}&per_page={per_page}"
-        response = requests.get(search_url, headers=headers)
-        repo_data = response.json()
-        
-        with open(file_path, 'w') as f:
-            json.dump(repo_data, f, indent=2)
-    
-    return repo_data
+        tag_name = data["default_branch"]
+        base_dir = f"/home/lbs/codedb/target/{repo_owner}_{repo_name}"
+        dir_path = f"/home/lbs/codedb/target/{repo_owner}_{repo_name}/{tag_name}"
+
+        # 디렉토리 생성 및 다운로드
+        os.makedirs(base_dir, exist_ok=True)
+        return_code = os.system(f"git clone {data['clone_url']} {dir_path}")
+
+        if return_code == 0:
+            print(f"{dir_path} 다운로드 성공.")
+            downloaded = True
+        else:
+            print(f"{dir_path} 다운로드 실패. code: {return_code}")
+            downloaded = False
+
+        version_name = generate_version_name(tag_name)
+        versions.append({"version_name": version_name, "tag_name": tag_name, "dir_path": dir_path,
+                         "downloaded": downloaded})
+
+    repo_dict = {
+        "repo_name": repo_name,
+        "repo_owner": repo_owner,
+        "full_name": full_name,
+        "repo_path": repo_path,
+        "url": url,
+        "platform": platform,
+        "stars_count": stars_count,
+        "versions": versions
+    }
+
+    # repo_dict 딕셔너리를 JSON 파일로 저장
+    output_file = f'{repo_path}/info.json'
+    with open(output_file, 'w') as json_file:
+        json.dump(repo_dict, json_file, indent=4)
+
+    print(f"Repository 정보가 {output_file}에 저장되었습니다.")
 
 
-def get_repo_list_by_lagnuage(language):
-    # 언어에 해당하는 저장소 정보 로드
-    repo_info = load_repo_info(language)
-    repo_list = []
-
-    # 각 저장소에 대한 정보 처리
-    for repo in repo_info['items']:
-        repo_name = repo['name']
-        repo_owner = repo['owner']['login']
-
-        # 데이터베이스에 연결
-        conn = connect_to_database()
-  
-        # 저장소가 데이터베이스에 존재하지 않으면 리스트에 추가
-        if not find_repository_by_name_and_owner(conn, repo_name, repo_owner):
-            repo_list.append(repo['full_name'])
-
-        # 데이터베이스 연결 종료
-        conn.close()
-
-    return repo_list
-
-
-if __name__ == '__main__':
-    # 언어에 대한 저장소 정보를 로드하고 출력합니다.
-    language = 'c'
-
-    repo_list = get_repo_list_by_lagnuage(language)
-    print(repo_list)
-    print(len(repo_list))
+if __name__ == "__main__":
+    repo_owner = "gnutls"
+    repo_name = "gnutls"
+    download_github_repo(repo_owner, repo_name)

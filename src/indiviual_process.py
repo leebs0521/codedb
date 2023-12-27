@@ -2,34 +2,8 @@ import json
 import os
 
 from db_utils import insert_data_to_database
-from parsing import process_directory, save_dict_to_json
+from parsing import process_directory
 from utils import unzip_file
-
-info = {
-    "name": "golang.org/x/sync",
-    "versions": [
-        {
-            "version": "v0.5.0",
-            "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.5.0.tar.gz",
-        },
-		{
-            "version": "v0.4.0",
-            "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.4.0.tar.gz",
-        },
-		{
-            "version": "v0.3.0",
-            "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.3.0.tar.gz",
-        },
-		{
-            "version": "v0.2.0",
-            "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.2.0.tar.gz",
-        },
-		{
-            "version": "v0.1.0",
-            "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.1.0.tar.gz",
-        },
-	]
-}
 
 
 def download(info):
@@ -90,35 +64,71 @@ def process(repo_info):
 
     identifier = repo_info['repo_name']
 
+    # repo_info가 존재하는 경우 처리
     if repo_info['repo_name']:
         print(
             f"Repository Info: Full Name={repo_info['full_name']}, Platform={repo_info['platform']}, \
                     # of Stars={repo_info['stars_count']}, # of Versions={len(repo_info['versions'])}")
+    
+        # 결과 디렉토리 생성
+        res_dir = f'/home/lbs/codedb/results/{identifier.replace("/", "_")}'
+        os.makedirs(res_dir, exist_ok=True)
 
-    res_dir = f'/home/lbs/codedb/results/{identifier.replace("/", "_")}'
-    os.makedirs(res_dir, exist_ok=True)
+        # 버전 정보 가져오기
+        versions = repo_info.pop('versions')
+        
+        # 각 버전에 대한 처리
+        for version in versions:
+            if version.get('downloaded'):
+                res_dict = {
+                    "repository": repo_info,
+                    "version": version,
+                    "functions": []
+                }
+                # version_name 및 dir_path 설정
+                version_name = version.get('version_name')
+                dir_path = version.get('dir_path')
 
-    versions = repo_info.pop('versions')
-    for version in versions:
-        if version.get('downloaded'):
-            res_dict = {
-                "repository": repo_info,
-                "version": version,
-                "functions": []
-            }
-            version_name = version.get('version_name')
-            dir_path = version.get('dir_path')
-
-            file_functions = process_directory(dir_path, identifier)
-            res_dict['functions'] = file_functions['data']
-            save_dict_to_json(res_dict, f'{res_dir}/{version_name.replace("/","_")}.json')
-            """json file to database"""
-            insert_data_to_database(res_dict)
-        else:
-            print(f"Tag '{version_name} is not downloaded.")
+                # 디렉토리에서 함수 정보 가져오기
+                file_functions = process_directory(dir_path, identifier)
+                res_dict['functions'] = file_functions['data']
+                
+                # JSON 파일로 결과 저장
+                with open(f'{res_dir}/{version_name.replace("/","_")}.json', 'w') as json_file:
+                    json.dump(res_dict, json_file, indent=4)
+                    
+                # 데이터베이스에 JSON 파일 내용 삽입
+                insert_data_to_database(res_dict)
+            else:
+                print(f"Tag '{version_name} is not downloaded.")
 
 
 if __name__ == "__main__":
+    info = {
+    "name": "golang.org/x/sync",
+    "versions": [
+            {
+                "version": "v0.5.0",
+                "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.5.0.tar.gz",
+            },
+            {
+                "version": "v0.4.0",
+                "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.4.0.tar.gz",
+            },
+            {
+                "version": "v0.3.0",
+                "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.3.0.tar.gz",
+            },
+            {
+                "version": "v0.2.0",
+                "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.2.0.tar.gz",
+            },
+            {
+                "version": "v0.1.0",
+                "download_url": "https://go.googlesource.com/sync/+archive/refs/tags/v0.1.0.tar.gz",
+            },
+	    ]
+    }
 
     result_info = download(info)
     process(result_info)
