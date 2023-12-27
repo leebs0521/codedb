@@ -70,6 +70,8 @@ def extract_function_info(file_contents, language):
         # 중복된 키를 처리하기 위해 defaultdict 사용
         merged_dict = defaultdict(list)
         for key, value in zip(keys, values):
+            # 주석 제거
+            value = re.sub(r'\/\/[^\n]*|\/\*.*?\*\/', '', value)
             merged_dict[key].append(value)
         result_dict = {key: ', '.join(val) for key, val in merged_dict.items()}
 
@@ -77,14 +79,14 @@ def extract_function_info(file_contents, language):
         return_types = re.sub(r'[()]', '', result_dict.get('return_type', ''))
 
         if language in ('c', 'cpp'):
-            return_types = return_types.replace(',', ' ')
+            return_types = return_types.replace(',', '')
 
         if language == 'objective-c':
             param_list = re.sub(r'\n\s*', ' ', result_dict.get('param_list', ''))
             parameters_count = len(param_list.split(',')) if param_list else 0
 
         else:
-            param_list = re.sub(r'\n\s*', ' ', re.sub(r'[()]', '', result_dict.get('param_list', '')))
+            param_list = re.sub(r'\n\s*', ' ', re.sub(r'[()]', '', result_dict.get('param_list', ''))).strip()
             parameters_count = len(param_list.split(',')) if param_list else 0
         # 결과 딕셔너리 생성
         if result_dict:
@@ -99,8 +101,8 @@ def extract_function_info(file_contents, language):
 
 
 if __name__ == "__main__":
-    file_path = '/home/lbs/codedb/test3.cpp'
-    funcs = parse_code_by_language(file_path, 'cpp')
+    file_path = '/home/lbs/codedb/query/test/test.go'
+    funcs = parse_code_by_language(file_path, 'go', '1')
 
     for func in funcs:
         print(func)
