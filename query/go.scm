@@ -1,3 +1,4 @@
+; 일반 함수
 (function_declaration
  name: (identifier) @func_name
  parameters: (parameter_list) @param_list
@@ -8,6 +9,7 @@
  result: (interface_type)? @return_type
  result: (map_type)? @return_type)
 
+; 클래스 메소드
 (method_declaration
   receiver: (parameter_list)
   name: (field_identifier) @func_name

@@ -1,8 +1,8 @@
 import pymysql
-import json
 
 
 def connect_to_database():
+    # 데이터베이스 연결 설정
     db_config = {
         "host": "",
         "user": "",
@@ -12,6 +12,7 @@ def connect_to_database():
     }
 
     try:
+        # 연결 시도
         conn = pymysql.connect(**db_config)
         return conn
     except pymysql.Error as e:
@@ -19,7 +20,7 @@ def connect_to_database():
         return None
 
 
-# Insert data into 'repositories' table
+# 'repositories' 테이블에 데이터 삽입
 def insert_repository_data(conn, repo_name, repo_owner, full_name, repo_path, url, platform, stars_count):
     if conn is None:
         return
@@ -30,7 +31,7 @@ def insert_repository_data(conn, repo_name, repo_owner, full_name, repo_path, ur
                       "stars_count) VALUES (%s, %s, %s, %s, %s, %s, %s)"
         cursor.execute(insert_data, (repo_name, repo_owner, full_name, repo_path, url, platform, stars_count))
         conn.commit()
-        repo_id = cursor.lastrowid  # Get the ID of the newly added repo
+        repo_id = cursor.lastrowid  # 새로 추가된 저장소의 ID 가져오기
         cursor.close()
         return repo_id
     except pymysql.Error as e:
@@ -38,7 +39,7 @@ def insert_repository_data(conn, repo_name, repo_owner, full_name, repo_path, ur
         return None
 
 
-# Insert data into 'repo_version' table
+# 'repo_version' 테이블에 데이터 삽입
 def insert_repo_version_data(conn, repo_id, version_name, tag_name, dir_path):
     if conn is None:
         return
@@ -48,7 +49,7 @@ def insert_repo_version_data(conn, repo_id, version_name, tag_name, dir_path):
         insert_data = "INSERT INTO repo_version (repo_id, version_name, tag_name, dir_path) VALUES (%s, %s, %s, %s)"
         cursor.execute(insert_data, (repo_id, version_name, tag_name, dir_path))
         conn.commit()
-        version_id = cursor.lastrowid  # Get the ID of the newly added version
+        version_id = cursor.lastrowid  # 새로 추가된 버전의 ID 가져오기
         cursor.close()
         return version_id
     except pymysql.Error as e:
@@ -56,7 +57,7 @@ def insert_repo_version_data(conn, repo_id, version_name, tag_name, dir_path):
         return None
 
 
-# Insert data into 'functions' table
+# 'functions' 테이블에 데이터 삽입
 def insert_function_data(conn, repo_id, ver_id, function_name, return_types, param_types, param_count, file_name,
                          language_type):
     if conn is None:
@@ -69,7 +70,7 @@ def insert_function_data(conn, repo_id, ver_id, function_name, return_types, par
         cursor.execute(insert_data, (repo_id, ver_id, function_name, return_types, param_types, param_count,
                                      file_name, language_type))
         conn.commit()
-        function_id = cursor.lastrowid  # Get the ID of the newly added function
+        function_id = cursor.lastrowid  # 새로 추가된 함수의 ID 가져오기
         cursor.close()
         return function_id
     except pymysql.Error as e:
@@ -77,7 +78,7 @@ def insert_function_data(conn, repo_id, ver_id, function_name, return_types, par
         return None
 
 
-# Find a repository by name and owner
+# 'repo_name'과 'repo_owner'에 따라 'repositories' 테이블에서 데이터 찾기
 def find_repository_by_name_and_owner(conn, repo_name, repo_owner):
     if conn is None:
         return None
@@ -94,7 +95,7 @@ def find_repository_by_name_and_owner(conn, repo_name, repo_owner):
         return None
 
 
-# Find a function by parameters
+# 파라미터에 따라 'functions' 테이블에서 데이터 찾기
 def find_function_by_params(conn, repo_id, ver_id, function_name, return_types, param_types, param_count, file_name,
                             language_type):
     if conn is None:
@@ -115,7 +116,7 @@ def find_function_by_params(conn, repo_id, ver_id, function_name, return_types, 
         return None
 
 
-# Find a repo version by name and repo_id
+# 'repo_id'와 'version_name'에 따라 'repo_version' 테이블에서 데이터 찾기
 def find_repo_version_by_name_and_repo_id(conn, repo_id, version_name, tag_name):
     if conn is None:
         return None
@@ -133,12 +134,15 @@ def find_repo_version_by_name_and_repo_id(conn, repo_id, version_name, tag_name)
 
 
 def insert_data_to_database(data):
+    # 데이터베이스에 연결
     conn = connect_to_database()
 
+    # Repository, Version 및 Function 데이터 추출
     repo_data = data['repository']
     version_data = data['version']
     functions_data = data['functions']
 
+    # Repository 정보 추출
     if repo_data['repo_name']:
         repo_name = repo_data['repo_name']
         repo_owner = repo_data['repo_owner']
@@ -148,21 +152,25 @@ def insert_data_to_database(data):
         platform = repo_data['platform']
         stars_count = repo_data['stars_count']
 
+        # Repository가 이미 존재하는지 확인
         repo = find_repository_by_name_and_owner(conn, repo_name, repo_owner)
 
         if repo:
             repo_id = repo[0]
             print(f"Repository '{repo_name}' by '{repo_owner}' already exists in the database.")
         else:
+            # 존재하지 않는 경우 Repository 정보 삽입
             repo_id = insert_repository_data(conn, repo_name, repo_owner, full_name, repo_path, url, platform,
                                              stars_count)
             print(f"Added repository '{repo_name}' by '{repo_owner}' to the database.")
 
+        # Version 데이터 확인
         if version_data:
             version_name = version_data['version_name']
             tag_name = version_data['tag_name']
             dir_path = version_data['dir_path']
 
+            # Version이 이미 존재하는지 확인
             ver = find_repo_version_by_name_and_repo_id(conn, repo_id, version_name, tag_name)
 
             if ver:
@@ -170,13 +178,17 @@ def insert_data_to_database(data):
                 print(f"Version '{version_name}' and Tag '{tag_name}' for repository '{repo_name}' by '{repo_owner}' "
                       f"already exists in the database.")
             else:
+                # 존재하지 않는 경우 Version 정보 삽입
                 ver_id = insert_repo_version_data(conn, repo_id, version_name, tag_name, dir_path)
                 print(f"Added version '{version_name}' Tag '{tag_name}' for repository '{repo_name}' by '{repo_owner}' "
                       f"to the database.")
 
+            # Function 데이터 처리
             for functions in functions_data:
                 file_name = functions['file_name']
                 language_type = functions['language_type']
+
+                # 함수 정보 삽입
                 for func in functions['functions']:
                     function_name = func['function_name']
                     return_types = func['return_types']
@@ -191,30 +203,19 @@ def insert_data_to_database(data):
                             f"Added function '{function_name}' to version '{version_name}' Tag '{tag_name}' for "
                             f"repository '{repo_name}' by '{repo_owner}'.")
 
+            # 데이터베이스 연결 종료
             conn.close()
         else:
+            # Version 정보가 없는 경우 데이터베이스 연결 종료
             conn.close()
     else:
+        # Repository 정보가 없는 경우 데이터베이스 연결 종료
         conn.close()
 
 
-def main():
-    path = '/home/lbs/codedb/results/golang.org_x_crypto/v0.0.0-20190308221718-c2843e01d9a2.json'
-
-    with open(path, 'r') as json_file:
-        json_data = json.load(json_file)
-
-    #insert_data_to_database(json_data)
-
-
 if __name__ == "__main__":
-    #main()
     conn = connect_to_database()
     repo = find_repository_by_name_and_owner(conn, 'gnutls', 'gnutls')
-    if repo:
-        print(1)
-    else:
-        print(2)
     conn.close()
     print(repo)
 

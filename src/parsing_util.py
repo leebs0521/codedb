@@ -99,11 +99,6 @@ def extract_function_info(file_contents, language):
 
 
 if __name__ == "__main__":
-    #file_path = '/home/lbs/source/test.swift'
-    #funcs = parse_code_by_language(file_path, 'swift')
-    #file_path = '/home/lbs/source/test.m'
-    #funcs = parse_code_by_language(file_path, 'objectiv-c')
-
     file_path = '/home/lbs/codedb/test3.cpp'
     funcs = parse_code_by_language(file_path, 'cpp')
 

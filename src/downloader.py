@@ -14,10 +14,6 @@ def generate_version_name(tag_name):
     return version
 
 
-def is_already_downloaded(download_dir):
-    return os.path.exists(download_dir)
-
-
 def fetch_repo_info(repo_owner, repo_name):
 
     # GitHub API를 사용하여 저장소 검색
@@ -51,7 +47,7 @@ def download(repo_owner, repo_name):
         for tag in tags_data:
             tag_name = tag["name"]
             ver = tag_name.replace("/", "_")
-            zipball_url = f"{url}/zipball/{tag_name}"
+            zipball_url = f"{url}/zipball/refs/tags/{tag_name}"
             dir_path = f"/home/lbs/codedb/target/{repo_owner}_{repo_name}/{ver}"
 
             # 디렉토리 생성 및 다운로드

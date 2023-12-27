@@ -1,10 +1,11 @@
 import multiprocessing
+from datetime import datetime
+from pytz import timezone
+
 from github_repo_downloader import get_repo_list_by_lagnuage
 from db_utils import connect_to_database, find_repository_by_name_and_owner
 import downloader
 import insert_data
-from datetime import datetime
-from pytz import timezone
 
 
 def write_log(mode, message):

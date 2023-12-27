@@ -1,3 +1,4 @@
+; 포인터 함수
 (_
  (storage_class_specifier)* @return_type
  [type: (primitive_type) @return_type
@@ -8,7 +9,7 @@
    declarator: (identifier) @func_name
    parameters: (parameter_list) @param_list))
  )
-
+; 일반 함수
 (_
  (storage_class_specifier)* @return_type
  [type: (primitive_type) @return_type

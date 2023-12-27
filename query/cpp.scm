@@ -1,3 +1,4 @@
+; 클래스 메소드
 (_
  (storage_class_specifier)* @return_type
  [(primitive_type) @return_type
@@ -11,6 +12,7 @@
    (identifier) @func_name)
  (parameter_list) @param_list))
 
+; 클래스 포인터 메소드
 (_
  (storage_class_specifier)* @return_type
  [(primitive_type) @return_type
@@ -25,6 +27,7 @@
     (identifier) @func_name)
  (parameter_list) @param_list)))
 
+; 일반 함수
 (_
  (storage_class_specifier)* @return_type
  [(primitive_type) @return_type
@@ -37,6 +40,7 @@
    (field_identifier) @func_name]
   (parameter_list) @param_list))
 
+; 포인터 함수
 (_
  (storage_class_specifier)* @return_type
  [(primitive_type) @return_type
