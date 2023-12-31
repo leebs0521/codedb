@@ -28,10 +28,9 @@ def process_repo(repo):
         end_message = f'{repo_owner}/{repo_name} | {datetime.now(timezone("Asia/Seoul"))} | End.'
         write_log('a', start_message)
         write_log('a', end_message)
-    
-        
-if __name__ == "__main__":
 
+
+def main():
     repo_list = get_repo_list_by_lagnuage('cpp')
     message = f'Start time | {datetime.now(timezone("Asia/Seoul"))}'
     write_log('a', message)
@@ -49,3 +48,7 @@ if __name__ == "__main__":
 
     message = f'End time | {datetime.now(timezone("Asia/Seoul"))}'
     write_log('a', message)
+        
+if __name__ == "__main__":
+    main()
+    

@@ -6,7 +6,7 @@ from parsing import process_directory
 from utils import unzip_file
 
 
-def download(info):
+def manual_download(info):
     repo_name = info['name']
     repo_owner = ''
     full_name = repo_name
@@ -130,6 +130,6 @@ if __name__ == "__main__":
 	    ]
     }
 
-    result_info = download(info)
+    result_info = manual_download(info)
     process(result_info)
 
