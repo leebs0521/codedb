@@ -1,5 +1,6 @@
-# parseFunctions
- - 소스코드에 함수 정보(함수 이름, 파라미터, 리턴 타입 등)을 파싱
+# codedb
+ - OSS 수집(Using Github REST API)
+ - Tree-sitter 기반 함수 정보(함수 명, 리턴 타입, 파라미터 등) 추출 및 DB 저장
 
 ## 지원 언어
  - c
